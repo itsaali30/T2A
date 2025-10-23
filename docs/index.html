@@ -1,1 +1,401 @@
-const API_URL = 'https://t2a.onrender.com';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text-to-Speech API</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 150px;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+        }
+
+        .status.loading {
+            background: #fff3cd;
+            color: #856404;
+            display: block;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+
+        .audio-player {
+            margin-top: 20px;
+            display: none;
+        }
+
+        audio {
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        .api-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .api-info h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .api-info code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .api-info pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+
+        .char-count {
+            text-align: right;
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .github-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .github-link a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .github-link a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            .options {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎙️ Text-to-Speech API</h1>
+            <p>Convert text to speech in Hindi and English</p>
+        </div>
+
+        <div class="card">
+            <form id="ttsForm">
+                <div class="form-group">
+                    <label for="text">Enter Text</label>
+                    <textarea 
+                        id="text" 
+                        name="text" 
+                        placeholder="Type or paste your text here..."
+                        required
+                    ></textarea>
+                    <div class="char-count">
+                        <span id="charCount">0</span> characters
+                    </div>
+                </div>
+
+                <div class="options">
+                    <div class="form-group">
+                        <label for="lang">Language</label>
+                        <select id="lang" name="lang">
+                            <option value="english">English</option>
+                            <option value="hindi">Hindi (हिंदी)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="file">Output Format</label>
+                        <select id="file" name="file">
+                            <option value="mp3">MP3</option>
+                            <option value="wav">WAV</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="generateBtn">
+                    Generate Speech
+                </button>
+            </form>
+
+            <div id="status" class="status"></div>
+
+            <div id="audioPlayer" class="audio-player">
+                <audio id="audio" controls></audio>
+            </div>
+        </div>
+
+        <div class="card api-info">
+            <h3>📚 API Documentation</h3>
+            <p><strong>Endpoint:</strong> <code>POST /api/tts</code></p>
+            <p style="margin-top: 10px;"><strong>Request Example:</strong></p>
+            <pre>{
+  "text": "Hello, how are you?",
+  "lang": "english",
+  "file": "mp3"
+}</pre>
+            <p style="margin-top: 15px;"><strong>cURL Example:</strong></p>
+            <pre>curl -X POST https://your-api-url.com/api/tts \
+  -H "Content-Type: application/json" \
+  -d '{"text":"Hello","lang":"english","file":"mp3"}' \
+  --output speech.mp3</pre>
+        </div>
+
+        <div class="github-link">
+            <a href="https://github.com/itsaali30/T2A" target="_blank">
+                <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+                </svg>
+                View on GitHub
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('ttsForm');
+        const textArea = document.getElementById('text');
+        const charCount = document.getElementById('charCount');
+        const statusDiv = document.getElementById('status');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const audio = document.getElementById('audio');
+        const generateBtn = document.getElementById('generateBtn');
+
+        // Update character count
+        textArea.addEventListener('input', () => {
+            charCount.textContent = textArea.value.length;
+        });
+
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const text = textArea.value.trim();
+            const lang = document.getElementById('lang').value;
+            const file = document.getElementById('file').value;
+
+            if (!text) {
+                showStatus('error', 'Please enter some text');
+                return;
+            }
+
+            // Show loading
+            showStatus('loading', 'Generating speech... Please wait');
+            generateBtn.disabled = true;
+            audioPlayer.style.display = 'none';
+
+            try {
+                // Replace this with your actual API URL
+                const API_URL = 'YOUR_API_URL_HERE'; // e.g., https://t2a.onrender.com
+                
+                const response = await fetch(`${API_URL}/api/tts`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text, lang, file })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to generate speech');
+                }
+
+                // Get audio blob
+                const blob = await response.blob();
+                const audioUrl = URL.createObjectURL(blob);
+
+                // Display audio player
+                audio.src = audioUrl;
+                audioPlayer.style.display = 'block';
+                
+                // Create download link
+                const downloadLink = document.createElement('a');
+                downloadLink.href = audioUrl;
+                downloadLink.download = `speech_${Date.now()}.${file}`;
+                
+                showStatus('success', `✅ Speech generated successfully! Playing...`);
+                audio.play();
+
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('error', `❌ Error: ${error.message}. Please check API URL in code.`);
+            } finally {
+                generateBtn.disabled = false;
+            }
+        });
+
+        function showStatus(type, message) {
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+        }
+
+        // Sample text examples
+        const examples = {
+            english: "The stars were gone! Usually, they twinkled so brightly, but tonight, nothing. He immediately contacted the Cloud Squad.",
+            hindi: "नमस्ते! यह एक परीक्षण है। आप कैसे हैं? मुझे उम्मीद है कि आप अच्छे होंगे।"
+        };
+
+        document.getElementById('lang').addEventListener('change', (e) => {
+            if (!textArea.value) {
+                textArea.value = examples[e.target.value];
+                charCount.textContent = textArea.value.length;
+            }
+        });
+    </script>
+</body>
+</html>
