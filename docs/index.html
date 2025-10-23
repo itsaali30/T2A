@@ -291,7 +291,7 @@
   "file": "mp3"
 }</pre>
             <p style="margin-top: 15px;"><strong>cURL Example:</strong></p>
-            <pre>curl -X POST https://your-api-url.com/api/tts \
+            <pre>curl -X POST https://t2a-api.onrender.com/api/tts \
   -H "Content-Type: application/json" \
   -d '{"text":"Hello","lang":"english","file":"mp3"}' \
   --output speech.mp3</pre>
@@ -341,7 +341,7 @@
 
             try {
                 // Replace this with your actual API URL
-                const API_URL = 'YOUR_API_URL_HERE'; // e.g., https://t2a.onrender.com
+                const API_URL = 'https://t2a-api.onrender.com'; // e.g., https://t2a.onrender.com
                 
                 const response = await fetch(`${API_URL}/api/tts`, {
                     method: 'POST',
